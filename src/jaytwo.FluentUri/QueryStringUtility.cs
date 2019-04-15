@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,6 +9,40 @@ namespace jaytwo.FluentUri
 {
     internal class QueryStringUtility
     {
+        public static string GetQueryString(object data)
+        {
+            var runtimeProperties = data.GetType().GetRuntimeProperties();
+            var dictionary = runtimeProperties
+                .Where(x => x.GetValue(data) != null)
+                .ToDictionary(m => m.Name, m => m.GetValue(data));
+
+            return GetQueryString(dictionary);
+        }
+
+        public static string GetQueryString(IDictionary<string, object> data)
+        {
+            var asKeyValuePairs = new List<KeyValuePair<string, string>>();
+
+            foreach (var keyValuePair in data)
+            {
+                var asArray = keyValuePair.Value as Array;
+
+                if (asArray != null)
+                {
+                    foreach (var item in asArray)
+                    {
+                        asKeyValuePairs.Add(new KeyValuePair<string, string>(keyValuePair.Key, $"{item}"));
+                    }
+                }
+                else
+                {
+                    asKeyValuePairs.Add(new KeyValuePair<string, string>(keyValuePair.Key, $"{keyValuePair.Value}"));
+                }
+            }
+
+            return GetQueryString(asKeyValuePairs);
+        }
+
         public static string GetQueryString(IDictionary<string, string[]> data)
         {
             var asKeyValuePairs = data.SelectMany(keyValuePair =>
@@ -23,7 +58,7 @@ namespace jaytwo.FluentUri
             return GetQueryString(asKeyValuePairs);
         }
 
-        public static string GetQueryString(IEnumerable<KeyValuePair<string, string>> data)
+        private static string GetQueryString(IEnumerable<KeyValuePair<string, string>> data)
         {
             return string.Join("&", data.Select(x => $"{PercentEncode(x.Key)}={PercentEncode(x.Value)}"));
         }
@@ -44,7 +79,7 @@ namespace jaytwo.FluentUri
             return result;
         }
 
-        public static IList<KeyValuePair<string, string>> ParseQueryStringAsKeyValuePairs(string queryString)
+        private static IList<KeyValuePair<string, string>> ParseQueryStringAsKeyValuePairs(string queryString)
         {
             var result = new List<KeyValuePair<string, string>>();
 
@@ -88,12 +123,12 @@ namespace jaytwo.FluentUri
             });
         }
 
-        private static readonly Regex percentDecodeRegex = new Regex(@"[%](<?HEX>[0-9a-fA-F]+)", regexOptions);
+        private static readonly Regex percentDecodeRegex = new Regex(@"([%][0-9a-fA-F]{2})+", regexOptions);
         internal static string PercentDecode(string value)
         {
-            return percentEncodeRegex.Replace(value, match =>
+            return percentDecodeRegex.Replace(value, match =>
             {
-                var hex = match.Groups["HEX"].Value;
+                var hex = match.Value.Replace("%", string.Empty);
 
                 var bytes = Enumerable.Range(0, hex.Length)
                     .Where(x => x % 2 == 0)

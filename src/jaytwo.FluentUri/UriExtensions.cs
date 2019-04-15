@@ -123,15 +123,27 @@ namespace jaytwo.FluentUri
 
         public static Uri WithQuery(this Uri uri, string query)
         {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
+            return WithQuery(uri, () => query);
+        }
 
-            var builder = new UriBuilder(uri);
-            builder.Query = query;
+        public static Uri WithQuery(this Uri uri, object data)
+        {
+            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+        }
 
-            return builder.Uri;
+        public static Uri WithQuery(this Uri uri, IDictionary<string, object> data)
+        {
+            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+        }
+
+        public static Uri WithQuery(this Uri uri, IDictionary<string, string[]> data)
+        {
+            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+        }
+
+        public static Uri WithQuery(this Uri uri, IDictionary<string, string> data)
+        {
+            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
         }
 
 #if NETFRAMEWORK || NETSTANDARD2
@@ -142,7 +154,7 @@ namespace jaytwo.FluentUri
         }
 #endif
 
-        public static Uri WithQuery(this Uri uri, IDictionary<string, string[]> data)
+        private static Uri WithQuery(this Uri uri, Func<string> getQueryStringDelegate)
         {
             if (uri == null)
             {
@@ -157,43 +169,11 @@ namespace jaytwo.FluentUri
                 query += "&";
             }
 
-            query += QueryStringUtility.GetQueryString(data);
+            query += getQueryStringDelegate();
 
             builder.Query = query;
 
             return builder.Uri;
-        }
-
-        public static Uri WithQuery(this Uri uri, IDictionary<string, string> data)
-        {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            var builder = new UriBuilder(uri);
-            var query = builder.Query;
-
-            if (!string.IsNullOrEmpty(query))
-            {
-                query += "&";
-            }
-
-            query += QueryStringUtility.GetQueryString(data);
-
-            builder.Query = query;
-
-            return builder.Uri;
-        }
-
-        public static Uri WithQuery(this Uri uri, object data)
-        {
-            var runtimeProperties = data.GetType().GetRuntimeProperties();
-            var dictionary = runtimeProperties
-                .Where(x => x.GetValue(data) != null)
-                .ToDictionary(m => m.Name, m => m.GetValue(data).ToString());
-
-            return WithQuery(uri, dictionary);
         }
 
         public static Uri WithoutQuery(this Uri uri)
