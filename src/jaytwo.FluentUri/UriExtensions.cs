@@ -10,6 +10,16 @@ namespace jaytwo.FluentUri
 {
     public static class UriExtensions
     {
+        public static bool IsHttp(this Uri uri)
+        {
+            return uri?.Scheme == "http";
+        }
+
+        public static bool IsHttps(this Uri uri)
+        {
+            return uri?.Scheme == "https";
+        }
+
         public static Uri WithHttp(this Uri uri)
         {
             return WithScheme(uri, "http");

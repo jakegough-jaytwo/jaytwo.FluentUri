@@ -7,6 +7,36 @@ namespace jaytwo.FluentUri.Tests
     public class UriExtensions
     {
         [Theory]
+        [InlineData("https://www.google.com", false)]
+        [InlineData("http://www.google.com", true)]
+        public void IsHttp(string baseUrl, bool expectedResult)
+        {
+            // arrange
+            var baseUri = new Uri(baseUrl);
+
+            // act
+            var result = baseUri.IsHttp();
+
+            // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
+        [InlineData("https://www.google.com", true)]
+        [InlineData("http://www.google.com", false)]
+        public void IsHttps(string baseUrl, bool expectedResult)
+        {
+            // arrange
+            var baseUri = new Uri(baseUrl);
+
+            // act
+            var result = baseUri.IsHttps();
+
+            // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
         [InlineData("http://www.google.com", "www.yahoo.com", "http://www.yahoo.com")]
         [InlineData("http://www.google.com/a", "www.yahoo.com", "http://www.yahoo.com/a")]
         public void WithHost(string baseUrl, string newHost, string expectedUrl)
