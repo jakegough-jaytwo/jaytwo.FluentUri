@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Text.RegularExpressions;
-using System.Text;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace jaytwo.FluentUri
 {
@@ -164,28 +164,6 @@ namespace jaytwo.FluentUri
         }
 #endif
 
-        private static Uri WithQuery(this Uri uri, Func<string> getQueryStringDelegate)
-        {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            var builder = new UriBuilder(uri);
-            var query = builder.Query;
-
-            if (!string.IsNullOrEmpty(query))
-            {
-                query += "&";
-            }
-
-            query += getQueryStringDelegate();
-
-            builder.Query = query;
-
-            return builder.Uri;
-        }
-
         public static Uri WithoutQuery(this Uri uri)
         {
             if (uri == null)
@@ -241,6 +219,28 @@ namespace jaytwo.FluentUri
             }
 
             return WithQuery(WithoutQuery(uri), data);
+        }
+
+        private static Uri WithQuery(this Uri uri, Func<string> getQueryStringDelegate)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            var builder = new UriBuilder(uri);
+            var query = builder.Query;
+
+            if (!string.IsNullOrEmpty(query))
+            {
+                query += "&";
+            }
+
+            query += getQueryStringDelegate();
+
+            builder.Query = query;
+
+            return builder.Uri;
         }
     }
 }

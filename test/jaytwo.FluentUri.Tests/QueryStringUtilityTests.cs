@@ -1,13 +1,20 @@
-﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace jaytwo.FluentUri.Tests
 {
     public class QueryStringUtilityTests
     {
+        public static IEnumerable<object[]> GetQueryString_object_data()
+        {
+            yield return new object[] { new { foo = "bar", fizz = "buzz" }, "foo=bar&fizz=buzz" };
+            yield return new object[] { new { foo = new[] { "bar", "baz" }, fizz = new[] { "buzz" } }, "foo=bar&foo=baz&fizz=buzz" };
+            yield return new object[] { new { foo = "hello world" }, "foo=hello%20world" };
+        }
+
         [Theory]
         [InlineData("abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz")]
         [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")]
@@ -195,13 +202,6 @@ namespace jaytwo.FluentUri.Tests
 
             // assert
             Assert.Equal(expectedQueryString, queryString);
-        }
-
-        public static IEnumerable<object[]> GetQueryString_object_data()
-        {
-            yield return new object[] { new { foo = "bar", fizz = "buzz" }, "foo=bar&fizz=buzz" };
-            yield return new object[] { new { foo = new[] { "bar", "baz" }, fizz = new[] { "buzz" } }, "foo=bar&foo=baz&fizz=buzz" };
-            yield return new object[] { new { foo = "hello world" }, "foo=hello%20world" };
         }
 
         [Theory]

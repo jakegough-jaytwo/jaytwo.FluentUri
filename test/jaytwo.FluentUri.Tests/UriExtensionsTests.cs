@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
 namespace jaytwo.FluentUri.Tests
 {
-    public class UriExtensions
+    public class UriExtensionsTests
     {
         [Theory]
         [InlineData("https://www.google.com", false)]
@@ -256,7 +256,7 @@ namespace jaytwo.FluentUri.Tests
             {
                 { "foo", new[] { "bar" } },
                 { "fizz", new[] { "buzz" } },
-                { "fi&zz", new[] {"bu zz" } },
+                { "fi&zz", new[] { "bu zz" } },
             };
 
             // act
