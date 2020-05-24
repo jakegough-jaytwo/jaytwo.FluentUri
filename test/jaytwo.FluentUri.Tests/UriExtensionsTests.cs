@@ -99,6 +99,23 @@ namespace jaytwo.FluentUri.Tests
         }
 
         [Theory]
+        [InlineData("http://www.google.com", "http://www.google.com")]
+        [InlineData("http://www.google.com/a/b", "http://www.google.com/")]
+        [InlineData("http://www.google.com/a/b?c=d", "http://www.google.com/")]
+        [InlineData("http://www.google.com/a/b/?c=d", "http://www.google.com/")]
+        public void WithoutPathAndQuery(string baseUrl, string expectedUrl)
+        {
+            // arrange
+            var baseUri = new Uri(baseUrl);
+
+            // act
+            var uri = baseUri.WithoutPathAndQuery();
+
+            // assert
+            Assert.Equal(new Uri(expectedUrl), uri);
+        }
+
+        [Theory]
         [InlineData("http://www.google.com:8080", "http://www.google.com")]
         [InlineData("http://www.google.com:80", "http://www.google.com")]
         [InlineData("http://www.google.com", "http://www.google.com")]
@@ -119,32 +136,36 @@ namespace jaytwo.FluentUri.Tests
         [InlineData("http://www.google.com/a/b", "http://www.google.com/a/b")]
         [InlineData("http://www.google.com/a/b?c=d", "http://www.google.com/a/b")]
         [InlineData("http://www.google.com/a/b/?c=d", "http://www.google.com/a/b/")]
+        [InlineData("/a/b/?c=d", "/a/b/")]
+        [InlineData("../a/b/?c=d", "../a/b/")]
         public void WithoutQuery(string baseUrl, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            Uri baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithoutQuery();
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]
-        [InlineData("http://www.google.com/?foo=bar", "foo", "http://www.google.com")]
-        [InlineData("http://www.google.com/?foo=bar&fizz=buzz", "foo", "http://www.google.com?fizz=buzz")]
-        [InlineData("http://www.google.com/?foo=bar&fizz=buzz", "fizz", "http://www.google.com?foo=bar")]
+        [InlineData("http://www.google.com/?foo=bar", "foo", "http://www.google.com/")]
+        [InlineData("http://www.google.com/?foo=bar&fizz=buzz", "foo", "http://www.google.com/?fizz=buzz")]
+        [InlineData("http://www.google.com/?foo=bar&fizz=buzz", "fizz", "http://www.google.com/?foo=bar")]
+        [InlineData("/?foo=bar&fizz=buzz", "fizz", "/?foo=bar")]
+        [InlineData("../?foo=bar&fizz=buzz", "fizz", "../?foo=bar")]
         public void WithoutQueryParameter(string baseUrl, string queryParameter, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithoutQueryParameter(queryParameter);
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]
@@ -154,30 +175,37 @@ namespace jaytwo.FluentUri.Tests
         [InlineData("http://www.google.com/foo?hello=world", "bar", "http://www.google.com/foo/bar?hello=world")]
         [InlineData("http://www.google.com/foo", "/bar", "http://www.google.com/bar")]
         [InlineData("http://www.google.com/foo?hello=world", "/bar", "http://www.google.com/bar?hello=world")]
+        [InlineData("/foo", "/bar", "/bar")]
+        [InlineData("/foo", "bar", "/foo/bar")]
+        [InlineData("/foo?hello=world", "/bar", "/bar?hello=world")]
+        [InlineData("/foo?hello=world", "bar", "/foo/bar?hello=world")]
         public void WithPath(string baseUrl, string path, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithPath(path);
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]
         [InlineData("http://www.google.com", "hello/{0}", new[] { "a b" }, "http://www.google.com/hello/a%20b")]
+        [InlineData("http://www.google.com/foo", "hello/{0}", new[] { "a b" }, "http://www.google.com/foo/hello/a%20b")]
+        [InlineData("/foo", "hello/{0}", new[] { "a b" }, "/foo/hello/a%20b")]
+        [InlineData("/foo?x=y", "hello/{0}", new[] { "a b" }, "/foo/hello/a%20b?x=y")]
         public void WithPath_Format(string baseUrl, string pathFormat, string[] formatArgs, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithPath(pathFormat, formatArgs);
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]
@@ -270,32 +298,38 @@ namespace jaytwo.FluentUri.Tests
         [InlineData("http://www.google.com/?foo=bar", "fizz", "buzz", "http://www.google.com/?foo=bar&fizz=buzz")]
         [InlineData("http://www.google.com/?foo=bar", "fi&zz", "bu zz", "http://www.google.com/?foo=bar&fi%26zz=bu%20zz")]
         [InlineData("http://www.google.com/?fi%26zz=bu%20zz", "foo", "bar", "http://www.google.com/?fi%26zz=bu%20zz&foo=bar")]
+        [InlineData("/a?foo=bar", "fizz", "buzz", "/a?foo=bar&fizz=buzz")]
+        [InlineData("/a?foo=bar", "fi&zz", "bu zz", "/a?foo=bar&fi%26zz=bu%20zz")]
+        [InlineData("/a?fi%26zz=bu%20zz", "foo", "bar", "/a?fi%26zz=bu%20zz&foo=bar")]
         public void WithQueryParameter(string baseUrl, string key, string value, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithQueryParameter(key, value);
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]
         [InlineData("http://www.google.com/?foo=bar", "fizz", 0, "http://www.google.com/?foo=bar&fizz=0")]
         [InlineData("http://www.google.com/?foo=bar", "fi&zz", "bu zz", "http://www.google.com/?foo=bar&fi%26zz=bu%20zz")]
         [InlineData("http://www.google.com/?fi%26zz=bu%20zz", "foo", "bar", "http://www.google.com/?fi%26zz=bu%20zz&foo=bar")]
+        [InlineData("/a?foo=bar", "fizz", "buzz", "/a?foo=bar&fizz=buzz")]
+        [InlineData("/a?foo=bar", "fi&zz", "bu zz", "/a?foo=bar&fi%26zz=bu%20zz")]
+        [InlineData("/a?fi%26zz=bu%20zz", "foo", "bar", "/a?fi%26zz=bu%20zz&foo=bar")]
         public void WithQueryParameter_value_object(string baseUrl, string key, object value, string expectedUrl)
         {
             // arrange
-            var baseUri = new Uri(baseUrl);
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
 
             // act
             var uri = baseUri.WithQueryParameter(key, value);
 
             // assert
-            Assert.Equal(new Uri(expectedUrl), uri);
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
         }
 
         [Theory]

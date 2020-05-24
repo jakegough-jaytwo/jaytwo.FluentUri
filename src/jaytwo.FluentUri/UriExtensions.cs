@@ -91,33 +91,50 @@ namespace jaytwo.FluentUri
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            var builder = new UriBuilder(uri);
-
-            if (!string.IsNullOrEmpty(path))
+            if (uri.IsAbsoluteUri)
             {
+                var builder = new UriBuilder(uri);
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    if (path.StartsWith("/"))
+                    {
+                        builder.Path = path;
+                    }
+                    else
+                    {
+                        builder.Path = builder.Path.TrimEnd('/') + "/" + path?.TrimStart('/');
+                    }
+                }
+
+                return builder.Uri;
+            }
+            else
+            {
+                string resultUrl;
                 if (path.StartsWith("/"))
                 {
-                    builder.Path = path;
+                    resultUrl = UrlHelper.SetPath(uri.OriginalString, path);
                 }
                 else
                 {
-                    builder.Path = builder.Path.TrimEnd('/') + "/" + path?.TrimStart('/');
+                    resultUrl = UrlHelper.AppendPath(uri.OriginalString, path);
                 }
-            }
 
-            return builder.Uri;
+                return new Uri(resultUrl, UriKind.Relative);
+            }
         }
 
         public static Uri WithPath(this Uri uri, string pathFormat, params string[] formatArgs)
         {
-            var escapedArgs = formatArgs?.Select(QueryStringUtility.PercentEncode).ToArray();
+            var escapedArgs = formatArgs?.Select(Uri.EscapeDataString).ToArray();
             var path = string.Format(pathFormat, escapedArgs);
             return WithPath(uri, path);
         }
 
         public static Uri WithPath(this Uri uri, string pathFormat, params object[] formatArgs)
         {
-            var escapedArgs = formatArgs?.Select(x => QueryStringUtility.PercentEncode($"{x}")).ToArray();
+            var escapedArgs = formatArgs?.Select(x => Uri.EscapeDataString($"{x}")).ToArray();
             return WithPath(uri, pathFormat, escapedArgs);
         }
 
@@ -129,6 +146,16 @@ namespace jaytwo.FluentUri
             }
 
             return new Uri(uri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Path, UriFormat.UriEscaped));
+        }
+
+        public static Uri WithoutPathAndQuery(this Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            return new Uri(uri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.PathAndQuery, UriFormat.UriEscaped));
         }
 
         public static Uri WithQuery(this Uri uri, string query)
@@ -171,7 +198,14 @@ namespace jaytwo.FluentUri
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return new Uri(uri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Query, UriFormat.UriEscaped));
+            if (uri.IsAbsoluteUri)
+            {
+                return new Uri(uri.GetComponents(UriComponents.AbsoluteUri & ~UriComponents.Query, UriFormat.UriEscaped));
+            }
+            else
+            {
+                return new Uri(UrlHelper.RemoveQuery(uri.OriginalString), UriKind.Relative);
+            }
         }
 
         public static Uri WithQueryParameter(this Uri uri, string key, string value)
@@ -186,7 +220,7 @@ namespace jaytwo.FluentUri
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            var data = QueryStringUtility.ParseQueryString(uri.Query);
+            var data = QueryStringUtility.ParseQueryString(GetQuery(uri));
 
             if (data.ContainsKey(key))
             {
@@ -211,7 +245,7 @@ namespace jaytwo.FluentUri
 
         public static Uri WithoutQueryParameter(this Uri uri, string key)
         {
-            var data = QueryStringUtility.ParseQueryString(uri.Query);
+            var data = QueryStringUtility.ParseQueryString(GetQuery(uri));
 
             if (data.ContainsKey(key))
             {
@@ -228,19 +262,31 @@ namespace jaytwo.FluentUri
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            var builder = new UriBuilder(uri);
-            var query = builder.Query;
+            var query = getQueryStringDelegate();
 
-            if (!string.IsNullOrEmpty(query))
+            if (uri.IsAbsoluteUri)
             {
-                query += "&";
+                var builder = new UriBuilder(uri);
+                builder.Query = query;
+
+                return builder.Uri;
             }
+            else
+            {
+                return new Uri(UrlHelper.SetQuery(uri.OriginalString, query), UriKind.Relative);
+            }
+        }
 
-            query += getQueryStringDelegate();
-
-            builder.Query = query;
-
-            return builder.Uri;
+        private static string GetQuery(Uri uri)
+        {
+            if (uri.IsAbsoluteUri)
+            {
+                return uri.Query;
+            }
+            else
+            {
+                return UrlHelper.GetQuery(uri.OriginalString);
+            }
         }
     }
 }

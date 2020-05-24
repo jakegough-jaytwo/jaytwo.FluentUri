@@ -9,15 +9,6 @@ namespace jaytwo.FluentUri
 {
     internal class QueryStringUtility
     {
-#if NETSTANDARD1_1
-        private static readonly RegexOptions RegexOptions = RegexOptions.CultureInvariant;
-#else
-        private static readonly RegexOptions RegexOptions = RegexOptions.Compiled | RegexOptions.CultureInvariant;
-#endif
-
-        private static readonly Regex PercentEncodeRegex = new Regex(@"[^A-Za-z0-9_.~]", RegexOptions);
-        private static readonly Regex PercentDecodeRegex = new Regex(@"([%][0-9a-fA-F]{2})+", RegexOptions);
-
         public static string GetQueryString(object data)
         {
             var runtimeProperties = data.GetType().GetRuntimeProperties();
@@ -83,40 +74,9 @@ namespace jaytwo.FluentUri
             return result;
         }
 
-        public static string PercentEncode(string value)
-        {
-            return PercentEncodeRegex.Replace(value, match =>
-            {
-                var utf8bytes = Encoding.UTF8.GetBytes(match.Value);
-
-                var result = new StringBuilder();
-                foreach (var b in utf8bytes)
-                {
-                    result.AppendFormat("%{0:X2}", b);
-                }
-
-                return result.ToString();
-            });
-        }
-
-        internal static string PercentDecode(string value)
-        {
-            return PercentDecodeRegex.Replace(value, match =>
-            {
-                var hex = match.Value.Replace("%", string.Empty);
-
-                var bytes = Enumerable.Range(0, hex.Length)
-                    .Where(x => x % 2 == 0)
-                    .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                    .ToArray();
-
-                return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-            });
-        }
-
         private static string GetQueryString(IEnumerable<KeyValuePair<string, string>> data)
         {
-            return string.Join("&", data.Select(x => $"{PercentEncode(x.Key)}={PercentEncode(x.Value)}"));
+            return string.Join("&", data.Select(x => $"{Uri.EscapeDataString(x.Key)}={Uri.EscapeDataString(x.Value)}"));
         }
 
         private static IList<KeyValuePair<string, string>> ParseQueryStringAsKeyValuePairs(string queryString)
@@ -131,8 +91,8 @@ namespace jaytwo.FluentUri
                 foreach (var keyValuePair in keyValuePairs)
                 {
                     var keyValueSplit = keyValuePair.Split('=');
-                    var key = PercentDecode(keyValueSplit[0]);
-                    var value = (keyValueSplit.Length > 1) ? PercentDecode(keyValueSplit[1]) : null;
+                    var key = Uri.UnescapeDataString(keyValueSplit[0]);
+                    var value = (keyValueSplit.Length > 1) ? Uri.UnescapeDataString(keyValueSplit[1]) : null;
                     result.Add(new KeyValuePair<string, string>(key, value));
                 }
             }
