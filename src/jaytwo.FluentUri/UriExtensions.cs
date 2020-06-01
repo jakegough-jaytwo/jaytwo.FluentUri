@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using jaytwo.UrlHelper;
 
 namespace jaytwo.FluentUri
 {
@@ -114,11 +115,11 @@ namespace jaytwo.FluentUri
                 string resultUrl;
                 if (path.StartsWith("/"))
                 {
-                    resultUrl = UrlHelper.SetPath(uri.OriginalString, path);
+                    resultUrl = Url.SetPath(uri.OriginalString, path);
                 }
                 else
                 {
-                    resultUrl = UrlHelper.AppendPath(uri.OriginalString, path);
+                    resultUrl = Url.AppendPath(uri.OriginalString, path);
                 }
 
                 return new Uri(resultUrl, UriKind.Relative);
@@ -204,7 +205,7 @@ namespace jaytwo.FluentUri
             }
             else
             {
-                return new Uri(UrlHelper.RemoveQuery(uri.OriginalString), UriKind.Relative);
+                return new Uri(Url.RemoveQuery(uri.OriginalString), UriKind.Relative);
             }
         }
 
@@ -273,7 +274,7 @@ namespace jaytwo.FluentUri
             }
             else
             {
-                return new Uri(UrlHelper.SetQuery(uri.OriginalString, query), UriKind.Relative);
+                return new Uri(Url.SetQuery(uri.OriginalString, query), UriKind.Relative);
             }
         }
 
@@ -285,7 +286,7 @@ namespace jaytwo.FluentUri
             }
             else
             {
-                return UrlHelper.GetQuery(uri.OriginalString);
+                return Url.GetQuery(uri.OriginalString);
             }
         }
     }

@@ -8,6 +8,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.*" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
     <DefineConstants>$(DefineConstants);NETFRAMEWORK4</DefineConstants>
