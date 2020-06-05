@@ -166,29 +166,28 @@ namespace jaytwo.FluentUri
 
         public static Uri WithQuery(this Uri uri, object data)
         {
-            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+            return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
         public static Uri WithQuery(this Uri uri, IDictionary<string, object> data)
         {
-            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+            return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
         public static Uri WithQuery(this Uri uri, IDictionary<string, string[]> data)
         {
-            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+            return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
         public static Uri WithQuery(this Uri uri, IDictionary<string, string> data)
         {
-            return WithQuery(uri, () => QueryStringUtility.GetQueryString(data));
+            return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
 #if NETFRAMEWORK || NETSTANDARD2
         public static Uri WithQuery(this Uri uri, NameValueCollection data)
         {
-            var asDictionary = data.AllKeys.ToDictionary(x => x, x => data.GetValues(x));
-            return WithQuery(uri, asDictionary);
+            return WithQuery(uri, () => QueryString.Serialize(data));
         }
 #endif
 
@@ -221,7 +220,7 @@ namespace jaytwo.FluentUri
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            var data = QueryStringUtility.ParseQueryString(GetQuery(uri));
+            var data = QueryString.Deserialize(GetQuery(uri));
 
             if (data.ContainsKey(key))
             {
@@ -246,7 +245,7 @@ namespace jaytwo.FluentUri
 
         public static Uri WithoutQueryParameter(this Uri uri, string key)
         {
-            var data = QueryStringUtility.ParseQueryString(GetQuery(uri));
+            var data = QueryString.Deserialize(GetQuery(uri));
 
             if (data.ContainsKey(key))
             {
