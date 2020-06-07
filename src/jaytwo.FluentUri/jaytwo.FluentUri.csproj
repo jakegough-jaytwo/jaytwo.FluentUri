@@ -6,10 +6,12 @@
     <RepositoryUrl>https://github.com/jakegough/jaytwo.FluentUri</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.3" />
+    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.5" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
