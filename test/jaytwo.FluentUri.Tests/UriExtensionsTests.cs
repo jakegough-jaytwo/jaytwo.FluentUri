@@ -179,6 +179,7 @@ namespace jaytwo.FluentUri.Tests
         [InlineData("/foo", "bar", "/foo/bar")]
         [InlineData("/foo?hello=world", "/bar", "/bar?hello=world")]
         [InlineData("/foo?hello=world", "bar", "/foo/bar?hello=world")]
+        [InlineData("", "bar", "bar")]
         public void WithPath(string baseUrl, string path, string expectedUrl)
         {
             // arrange
@@ -301,6 +302,7 @@ namespace jaytwo.FluentUri.Tests
         [InlineData("/a?foo=bar", "fizz", "buzz", "/a?foo=bar&fizz=buzz")]
         [InlineData("/a?foo=bar", "fi&zz", "bu zz", "/a?foo=bar&fi%26zz=bu%20zz")]
         [InlineData("/a?fi%26zz=bu%20zz", "foo", "bar", "/a?fi%26zz=bu%20zz&foo=bar")]
+        [InlineData("", "foo", "bar", "?foo=bar")]
         public void WithQueryParameter(string baseUrl, string key, string value, string expectedUrl)
         {
             // arrange
@@ -347,6 +349,49 @@ namespace jaytwo.FluentUri.Tests
 
             // assert
             Assert.Equal(new Uri(expectedUrl), uri);
+        }
+
+        [Theory]
+        [InlineData("/foo", "/foo")]
+        [InlineData("/foo/bar", "/foo/bar")]
+        public void WithPath_without_url(string path, string expectedUrl)
+        {
+            // arrange
+            var uri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
+
+            // act
+            uri = uri.WithPath(path);
+
+            // assert
+            Assert.Equal(expectedUrl, uri.ToString());
+        }
+
+        [Theory]
+        [InlineData("foo=bar", "?foo=bar")]
+        public void WithQuery_without_url(string query, string expectedUrl)
+        {
+            // arrange
+            var uri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
+
+            // act
+            uri = uri.WithQuery(query);
+
+            // assert
+            Assert.Equal(expectedUrl, uri.ToString());
+        }
+
+        [Theory]
+        [InlineData("/hello", "foo=bar", "/hello?foo=bar")]
+        public void WithQuery_before_WithPath(string path, string query, string expectedUrl)
+        {
+            // arrange
+            var uri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
+
+            // act
+            uri = uri.WithQuery(query).WithPath(path);
+
+            // assert
+            Assert.Equal(expectedUrl, uri.ToString());
         }
     }
 }
