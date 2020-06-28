@@ -184,7 +184,7 @@ namespace jaytwo.FluentUri
             return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
-#if NETFRAMEWORK || NETSTANDARD2
+#if !(NETSTANDARD1_1 || NETSTANDARD1_3 || NETSTANDARD1_6)
         public static Uri WithQuery(this Uri uri, NameValueCollection data)
         {
             return WithQuery(uri, () => QueryString.Serialize(data));
