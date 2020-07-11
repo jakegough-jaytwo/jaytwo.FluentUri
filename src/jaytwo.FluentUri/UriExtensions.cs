@@ -215,32 +215,48 @@ namespace jaytwo.FluentUri
 
         public static Uri WithQueryParameter(this Uri uri, string key, string[] values)
         {
+            return WithQueryParameter(uri, key, values?.Cast<object>().ToArray());
+        }
+
+        public static Uri WithQueryParameter(this Uri uri, string key, object value)
+        {
+            return WithQueryParameter(uri, key, new[] { value });
+        }
+
+        public static Uri WithQueryParameter(this Uri uri, string key, object[] values)
+        {
             if (uri == null)
             {
                 throw new ArgumentNullException(nameof(uri));
             }
 
             var data = QueryString.Deserialize(GetQuery(uri));
-
+            var newValues = new List<string>();
             if (data.ContainsKey(key))
             {
                 var existingValues = data[key];
-                var newValues = new List<string>(existingValues);
-                newValues.AddRange(values);
+                newValues.AddRange(existingValues.ToArray());
+            }
 
-                data[key] = newValues.ToArray();
-            }
-            else
+            if (values != null)
             {
-                data.Add(key, values);
+                foreach (var value in values)
+                {
+                    var asString = value as string;
+                    if (asString != null)
+                    {
+                        newValues.Add(asString);
+                    }
+                    else
+                    {
+                        newValues.Add(value?.ToString());
+                    }
+                }
             }
+
+            data[key] = newValues.ToArray();
 
             return WithQuery(WithoutQuery(uri), data);
-        }
-
-        public static Uri WithQueryParameter(this Uri uri, string key, object value)
-        {
-            return WithQueryParameter(uri, key, $"{value}");
         }
 
         public static Uri WithoutQueryParameter(this Uri uri, string key)
