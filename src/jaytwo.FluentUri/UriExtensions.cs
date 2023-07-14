@@ -139,6 +139,15 @@ namespace jaytwo.FluentUri
             return WithPath(uri, pathFormat, escapedArgs);
         }
 
+        public static Uri WithPathSegment(this Uri uri, int index, string value)
+            => new Uri(Url.SetPathSegment(uri.OriginalString, index, value), UriKind.RelativeOrAbsolute);
+
+        public static string GetPathSegment(this Uri uri, int index)
+            => Url.GetPathSegment(uri.OriginalString, index);
+
+        public static string[] GetPathSegments(this Uri uri)
+            => Url.GetPathSegments(uri.OriginalString);
+
         public static Uri WithoutPath(this Uri uri)
         {
             if (uri == null)

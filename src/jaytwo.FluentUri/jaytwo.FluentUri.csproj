@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.7-*" />
+    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.8-beta-20230714203015" />
   </ItemGroup>
 
   <!--
