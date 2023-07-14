@@ -139,6 +139,15 @@ namespace jaytwo.FluentUri
             return WithPath(uri, pathFormat, escapedArgs);
         }
 
+        public static Uri WithPathSegment(this Uri uri, int index, string value)
+            => new Uri(Url.SetPathSegment(uri.OriginalString, index, value), UriKind.RelativeOrAbsolute);
+
+        public static string GetPathSegment(this Uri uri, int index)
+            => Url.GetPathSegment(uri.OriginalString, index);
+
+        public static string[] GetPathSegments(this Uri uri)
+            => Url.GetPathSegments(uri.OriginalString);
+
         public static Uri WithoutPath(this Uri uri)
         {
             if (uri == null)
@@ -184,7 +193,7 @@ namespace jaytwo.FluentUri
             return WithQuery(uri, () => QueryString.Serialize(data));
         }
 
-#if NETFRAMEWORK || NETSTANDARD2
+#if !(NETSTANDARD1_1 || NETSTANDARD1_3 || NETSTANDARD1_6)
         public static Uri WithQuery(this Uri uri, NameValueCollection data)
         {
             return WithQuery(uri, () => QueryString.Serialize(data));
@@ -215,32 +224,48 @@ namespace jaytwo.FluentUri
 
         public static Uri WithQueryParameter(this Uri uri, string key, string[] values)
         {
+            return WithQueryParameter(uri, key, values?.Cast<object>().ToArray());
+        }
+
+        public static Uri WithQueryParameter(this Uri uri, string key, object value)
+        {
+            return WithQueryParameter(uri, key, new[] { value });
+        }
+
+        public static Uri WithQueryParameter(this Uri uri, string key, object[] values)
+        {
             if (uri == null)
             {
                 throw new ArgumentNullException(nameof(uri));
             }
 
             var data = QueryString.Deserialize(GetQuery(uri));
-
+            var newValues = new List<string>();
             if (data.ContainsKey(key))
             {
                 var existingValues = data[key];
-                var newValues = new List<string>(existingValues);
-                newValues.AddRange(values);
+                newValues.AddRange(existingValues.ToArray());
+            }
 
-                data[key] = newValues.ToArray();
-            }
-            else
+            if (values != null)
             {
-                data.Add(key, values);
+                foreach (var value in values)
+                {
+                    var asString = value as string;
+                    if (asString != null)
+                    {
+                        newValues.Add(asString);
+                    }
+                    else
+                    {
+                        newValues.Add(value?.ToString());
+                    }
+                }
             }
+
+            data[key] = newValues.ToArray();
 
             return WithQuery(WithoutQuery(uri), data);
-        }
-
-        public static Uri WithQueryParameter(this Uri uri, string key, object value)
-        {
-            return WithQueryParameter(uri, key, $"{value}");
         }
 
         public static Uri WithoutQueryParameter(this Uri uri, string key)
