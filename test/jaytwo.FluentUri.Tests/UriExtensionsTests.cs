@@ -193,6 +193,63 @@ namespace jaytwo.FluentUri.Tests
         }
 
         [Theory]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", "abc|def|ghi|")]
+        [InlineData("http://www.google.com/abc/def/ghi", "abc|def|ghi")]
+        [InlineData("http://www.google.com/abc//def/ghi", "abc||def|ghi")]
+        public void GetPathSegments(string url, string expected)
+        {
+            // arrange
+            var expectedPathSegments = expected.Split('|');
+            var uri = new Uri(url);
+
+            // act
+            var actual = uri.GetPathSegments();
+
+            // assert
+            Assert.Equal(expectedPathSegments, actual);
+        }
+
+        [Theory]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 0, "abc")]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 1, "def")]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 2, "ghi")]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 3, "")]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 4, null)]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar/biz", 99, null)]
+        public void GetPathSegment(string url, int index, string expected)
+        {
+            // arrange
+            var uri = new Uri(url);
+
+            // act
+            var actual = uri.GetPathSegment(index);
+
+            // assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar", 0, "xyz", "http://www.google.com/xyz/def/ghi/?foo=bar")]
+        [InlineData("http://www.google.com/abc/def/ghi/?foo=bar", 0, "hello world", "http://www.google.com/hello%20world/def/ghi/?foo=bar")]
+        [InlineData("/abc/def/ghi/?foo=bar/biz", 0, "xyz", "/xyz/def/ghi/?foo=bar/biz")]
+        [InlineData("/abc/def/ghi/?foo=bar/biz", 0, "hello world", "/hello%20world/def/ghi/?foo=bar/biz")]
+        [InlineData("/abc/def/ghi/?foo=bar/biz", 1, "xyz", "/abc/xyz/ghi/?foo=bar/biz")]
+        [InlineData("/abc/def/ghi/?foo=bar/biz", 1, "hello world", "/abc/hello%20world/ghi/?foo=bar/biz")]
+        [InlineData("../abc/def/ghi/?foo=bar/biz", 0, "xyz", "xyz/abc/def/ghi/?foo=bar/biz")]
+        [InlineData("../abc/def/ghi/?foo=bar/biz", 1, "xyz", "../xyz/def/ghi/?foo=bar/biz")]
+        public void WithPathSegment(string baseUrl, int index, string value, string expectedUrl)
+        {
+            // arrange
+            var baseUri = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
+
+            // act
+            var uri = baseUri.WithPathSegment(index, value);
+
+            // assert
+            Assert.Equal(new Uri(expectedUrl, UriKind.RelativeOrAbsolute), uri);
+        }
+
+        [Theory]
         [InlineData("http://www.google.com", "hello/{0}", new[] { "a b" }, "http://www.google.com/hello/a%20b")]
         [InlineData("http://www.google.com/foo", "hello/{0}", new[] { "a b" }, "http://www.google.com/foo/hello/a%20b")]
         [InlineData("/foo", "hello/{0}", new[] { "a b" }, "/foo/hello/a%20b")]
