@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;net6.0;net8.0</TargetFrameworks>
-    <VersionPrefix>0.2.0</VersionPrefix>
+    <VersionPrefix>0.2.1</VersionPrefix>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/jakegough/jaytwo.FluentUri.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
